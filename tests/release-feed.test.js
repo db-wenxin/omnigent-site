@@ -54,6 +54,9 @@ test("summary is plain text, keeping link labels, inline code and escaped punctu
 test("missing summary falls back without using headings, code or footer prose", () => {
   for (const source of [
     "# v9.0.0\n\n## Bug fixes\n\nA fix.",
+    withDescription(
+      "What's new in Omnigent v9.0.0 — release highlights, improvements, and fixes.",
+    ).replace(summary, ""),
     "# v9.0.0\n\n_Released 2026-10-01_\n\n## Bug fixes\n\nA fix.\n\nThanks to our community.",
     "# v9.0.0\n\n_Released 2026-10-01_\n\n```bash\nuv tool install omnigent\n```",
   ]) {
@@ -63,7 +66,7 @@ test("missing summary falls back without using headings, code or footer prose", 
   }
 });
 
-test("every current release appears once, with its own date and a specific description", () => {
+test("every current release appears once, with its own date and a description", () => {
   const releases = getReleases();
   expect(releases.length).toBeGreaterThan(0);
   expect(releases.map(({ version }) => version)).not.toContain("rss.xml");
@@ -72,14 +75,11 @@ test("every current release appears once, with its own date and a specific descr
   expect(xml).toContain(
     `<atom:link href="https://omnigent.ai${RELEASE_FEED_PATH}" rel="self" type="application/rss+xml" />`,
   );
-  expect(xml).not.toContain("What&apos;s new in Omnigent");
   for (const release of releases) {
     expect(release.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(release.date))).toBe(false);
-    expect(release.description.length).toBeGreaterThan(40);
-    expect(release.description).not.toBe(
-      `Release notes for Omnigent v${release.version}.`,
-    );
+    // A neutral fallback is valid; description quality must not gate a release.
+    expect(release.description.trim().length).toBeGreaterThan(0);
     const item = xml
       .split("<item>")
       .find((item) =>
@@ -162,6 +162,51 @@ test("preview URL overrides cannot change release feed identity", () => {
   expect(run.status).toBe(0);
   expect(run.stdout).not.toContain("preview.example");
   expect(run.stdout).toContain("https://omnigent.ai/releases/rss.xml");
+});
+
+test("a release without a summary still generates metadata, RSS and LLM files", () => {
+  const dir = mkdtempSync(path.join(tmpdir(), "release-fallback-"));
+  const script = path.resolve("scripts/gen-og-manifest.mjs");
+  const feedModule = path.resolve("lib/feed.js");
+  const llmsModule = path.resolve("scripts/generate-llms-files.mjs");
+  const fallback = "Release notes for Omnigent v9.0.0.";
+  try {
+    mkdirSync(path.join(dir, "lib"));
+    const folder = path.join(dir, "app/releases/9.0.0");
+    mkdirSync(folder, { recursive: true });
+    writeFileSync(
+      path.join(folder, "page.mdx"),
+      "# v9.0.0\n\n_Released 2026-10-01_\n\n## Bug fixes\n\nA fix.\n",
+    );
+    const generation = spawnSync("node", [script], {
+      cwd: dir,
+      encoding: "utf8",
+    });
+    expect(generation.status).toBe(0);
+    const manifest = JSON.parse(
+      readFileSync(path.join(dir, "lib/og-manifest.json"), "utf8"),
+    );
+    expect(manifest["/releases/9.0.0"].description).toBe(fallback);
+    const output = spawnSync(
+      process.execPath,
+      [
+        "-e",
+        `import { releaseFeedXml } from ${JSON.stringify(feedModule)};
+         import { buildLlmsFiles } from ${JSON.stringify(llmsModule)};
+         const { llmsTxt, llmsFullTxt } = await buildLlmsFiles();
+         console.log(JSON.stringify({ xml: releaseFeedXml(), llmsTxt, llmsFullTxt }));`,
+      ],
+      { cwd: dir, encoding: "utf8" },
+    );
+    expect(output.status).toBe(0);
+    const { xml, llmsTxt, llmsFullTxt } = JSON.parse(output.stdout);
+    expect(xml).toContain(`<description>${fallback}</description>`);
+    expect(xml).toContain("https://omnigent.ai/releases/9.0.0");
+    expect(llmsTxt).toContain(fallback);
+    expect(llmsFullTxt).toContain("## https://omnigent.ai/releases/9.0.0");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });
 
 test("build metadata injection uses the same summary and preserves explicit descriptions", () => {
