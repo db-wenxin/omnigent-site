@@ -58,6 +58,20 @@ test("blog posts and releases are in llms-full.txt, with releases summarized in 
   );
 });
 
+test("release summaries use the shared specific descriptions, not metadata boilerplate", () => {
+  for (const release of getReleases()) {
+    const page = pages.find((page) => page.href === release.href);
+    expect(page.description).toBe(release.description);
+  }
+  expect(llmsTxt).not.toContain("release highlights, improvements, and fixes.");
+  for (const release of getReleases().slice(0, 5)) {
+    const line = llmsTxt
+      .split("\n")
+      .find((line) => line.includes(`](${productionSiteUrl}${release.href})`));
+    expect(line).toContain(release.description.slice(0, 60));
+  }
+});
+
 test("llms.txt stays short while llms-full.txt carries the full text", () => {
   expect(llmsTxt.length).toBeLessThan(20_000);
   expect(llmsFullTxt.length).toBeGreaterThan(llmsTxt.length * 10);
