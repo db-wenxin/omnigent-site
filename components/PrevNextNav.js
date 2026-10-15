@@ -56,11 +56,6 @@ const ALL_PAGES = [
     section: "Use Omnigent",
   },
   {
-    href: "/docs/build/harnesses",
-    label: "Harnesses",
-    section: "Use Omnigent",
-  },
-  {
     href: "/docs/build/models",
     label: "Models & Credentials",
     section: "Use Omnigent",
@@ -75,16 +70,41 @@ const ALL_PAGES = [
     label: "Prompts & Skills",
     section: "Use Omnigent",
   },
-  { href: "/docs/build/tools", label: "MCP & Tools", section: "Use Omnigent" },
+  {
+    href: "/docs/build/tools",
+    label: "MCP & Tools",
+    section: "Use Omnigent",
+  },
   {
     href: "/docs/build/scheduled-tasks",
     label: "Scheduled Tasks",
     section: "Use Omnigent",
   },
+  {
+    href: "/docs/build/harnesses",
+    label: "Overview",
+    section: "Harnesses",
+  },
+  {
+    href: "/docs/build/harnesses/supported",
+    label: "Supported Harnesses",
+    section: "Harnesses",
+  },
+  {
+    href: "/docs/build/harnesses/configuration",
+    label: "Configuration",
+    section: "Harnesses",
+  },
+  {
+    href: "/docs/build/harnesses/community",
+    label: "Community Harnesses",
+    section: "Harnesses",
+  },
   { href: "/docs/interact/terminal", label: "Terminal", section: "Interact" },
   { href: "/docs/interact/web-ui", label: "Web UI", section: "Interact" },
   { href: "/docs/interact/mobile", label: "Mobile", section: "Interact" },
   { href: "/docs/interact/desktop", label: "Desktop App", section: "Interact" },
+  { href: "/docs/interact/slack", label: "Slack", section: "Interact" },
   {
     href: "/docs/collaborate",
     label: "Pair Programming",
@@ -106,8 +126,18 @@ const ALL_PAGES = [
     section: "Collaboration",
   },
   {
+    href: "/docs/deploy/credential-store",
+    label: "Credential Store",
+    section: "Collaboration",
+  },
+  {
     href: "/docs/deploy/cloud-sandbox-host",
     label: "Cloud Sandbox Host",
+    section: "Collaboration",
+  },
+  {
+    href: "/docs/deploy/community-sandbox-providers",
+    label: "Community Sandbox Providers",
     section: "Collaboration",
   },
   {
@@ -126,9 +156,49 @@ const ALL_PAGES = [
     section: "Contextual Policies",
   },
   {
-    href: "/docs/policies/os-sandbox",
+    href: "/docs/omnibox",
     label: "Omnibox",
-    section: "Contextual Policies",
+    section: "Omnibox",
+  },
+  {
+    href: "/docs/reference/configuration",
+    label: "Server Settings",
+    section: "Reference",
+  },
+  {
+    href: "/docs/reference/configuration/kubernetes",
+    label: "Kubernetes Sandbox",
+    section: "Reference",
+  },
+  {
+    href: "/docs/reference/configuration/os-sandbox",
+    label: "OS Sandbox",
+    section: "Reference",
+  },
+  {
+    href: "/docs/reference/configuration/cloud-sandbox",
+    label: "Cloud Sandbox",
+    section: "Reference",
+  },
+  {
+    href: "/docs/reference/configuration/routing",
+    label: "Smart Routing",
+    section: "Reference",
+  },
+  {
+    href: "/reference",
+    label: "REST API",
+    section: "Reference",
+  },
+  {
+    href: "/docs/reference/routing-api",
+    label: "Routing Provider API",
+    section: "Reference",
+  },
+  {
+    href: "/docs/deploy/telemetry",
+    label: "Usage Telemetry",
+    section: "Reference",
   },
 ];
 

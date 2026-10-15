@@ -1,10 +1,16 @@
 export const GITHUB_URL = "https://github.com/omnigent-ai/omnigent";
 export const DISCORD_URL = "https://discord.gg/omnigent";
 export const EVENTS_URL = "https://luma.com/omnigent";
+// Official Omnigent profiles and package listing (confirmed 2026-10-06/07).
+export const X_URL = "https://x.com/omnigent_ai";
+export const LINKEDIN_URL = "https://www.linkedin.com/company/omnigent-ai/";
+export const YOUTUBE_URL = "https://www.youtube.com/@omnigent_ai";
+export const PYPI_URL = "https://pypi.org/project/omnigent/";
 // "Latest" alias — redirected to the current build on Vercel Blob storage in
 // next.config.mjs. Always point download UI at these bare paths (not a versioned
 // permalink like /download/mac/v0.3.0) so they track the latest release.
 export const MACOS_DOWNLOAD_URL = "/download/mac";
+export const MACOS_X64_DOWNLOAD_URL = "/download/mac-x64";
 export const WINDOWS_DOWNLOAD_URL = "/download/windows";
 export const LINUX_DEB_DOWNLOAD_URL = "/download/linux-deb";
 export const LINUX_APPIMAGE_DOWNLOAD_URL = "/download/linux-appimage";

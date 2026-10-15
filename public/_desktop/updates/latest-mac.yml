@@ -1,11 +1,17 @@
-version: 0.6.0
+version: 0.17.2
 files:
-  - url: Omnigent-0.6.0-arm64-mac.zip
-    sha512: rDtSmatecJ+CzD6FHsgHc9bfwK21VshJRZGla4GBAWVQA/d7qMWjAgRz0HGJMKy139MIDiSbwbYCgFjwuGyLWA==
-    size: 121163197
-  - url: Omnigent-0.6.0-arm64.dmg
-    sha512: KJHXvHwIvfSfaU7RElxB5AS9NNZW7So3AEr/MFR2N3CJNACeI0P5XJWmQ4LWmqRm6CN3pjA3DJW4e7Ftl3qWSQ==
-    size: 122545572
-path: Omnigent-0.6.0-arm64-mac.zip
-sha512: rDtSmatecJ+CzD6FHsgHc9bfwK21VshJRZGla4GBAWVQA/d7qMWjAgRz0HGJMKy139MIDiSbwbYCgFjwuGyLWA==
-releaseDate: '2026-07-21T07:45:54.737Z'
+  - url: Omnigent-0.17.2-x64-mac.zip
+    sha512: F6Nc+x5PyKdSOGwZfl8k1FmcwkvwMJoHor09L/AAj6J3tdbmfrzIuYwdwCJTsCU5zu+l4arIysOYJhqZUdtUyA==
+    size: 128174729
+  - url: Omnigent-0.17.2-arm64-mac.zip
+    sha512: WIv4DI8V3KdavmetO8AWJ4JMM82iTXjlK+vNMxrHfy33EaoCZUzdkZU7s08gS19H+9euZxaBlF+vlplmRdccEA==
+    size: 123505584
+  - url: Omnigent-0.17.2-x64.dmg
+    sha512: BqnJGqRMiAQBg3e9J5rFPF7ngj9NuuE7lUKaSl6nWndltkwNydGR5w2swJfL8WsJt9MDmr43aubyMfIs29Q+Bw==
+    size: 129535700
+  - url: Omnigent-0.17.2-arm64.dmg
+    sha512: RhbvGi8wH1aFJxQFILf2Q2ceJ/zgOYELtdRRZtqZ5/ElO3EJnZW9BZihAc8oB/t4w79Caj6gFqPF4Gck9/BMqg==
+    size: 124961522
+path: Omnigent-0.17.2-x64-mac.zip
+sha512: F6Nc+x5PyKdSOGwZfl8k1FmcwkvwMJoHor09L/AAj6J3tdbmfrzIuYwdwCJTsCU5zu+l4arIysOYJhqZUdtUyA==
+releaseDate: '2026-10-09T22:54:21.718Z'

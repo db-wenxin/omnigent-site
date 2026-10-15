@@ -1,0 +1,714 @@
+import { pageMeta } from "@/lib/og";
+
+export const metadata = pageMeta(
+  "Configuration",
+  "Configure built-in and custom ACP harnesses, authentication, runtime selection, and launch overrides.",
+  {
+    eyebrow: "Harnesses",
+    path: "/docs/build/harnesses/configuration",
+  },
+);
+
+# Configuration
+
+Choose a harness id from [Supported Harnesses](/docs/build/harnesses/supported),
+then configure any authentication or launch settings it needs.
+
+## GitHub Copilot
+
+The `copilot` harness runs GitHub Copilot through the Copilot SDK (install the
+`copilot` extra). Launch it with the `omni copilot` shorthand, or spell out the
+harness on `omni run`:
+
+```
+omni copilot                         # shorthand for the line below
+omni run --harness copilot
+```
+
+`omni copilot` forwards every `omni run` option unchanged, so flags like
+`-p "review the last commit"` or `--model <id>` work as they do on `omni run`.
+Because the shorthand always uses the Copilot harness, passing `--harness` to
+it is a usage error — use `omni run --harness <name>` to pick a different
+harness. Resume hints for a session started this way print the canonical
+`omni run --harness copilot` form. `omni --help` lists `copilot` under
+**Harnesses** only when the Copilot SDK is installed, the same way the `cursor`
+row follows its SDK extra.
+
+### Authentication
+
+The `copilot` harness authenticates with a GitHub token that carries Copilot
+access. Omnigent resolves one from the first source that's set, in this order:
+
+1. A `COPILOT_GITHUB_TOKEN`, `GH_TOKEN`, or `GITHUB_TOKEN` environment variable.
+2. A token you stored through `omnigent setup` → *configure harnesses* →
+   **Copilot**.
+3. Your GitHub CLI login — if you've run `gh auth login`, Omnigent asks `gh` for
+   the token directly (`gh auth token`), so a logged-in user is ready without
+   pasting anything into setup.
+
+<div className="note">
+
+**Note:** The `gh` fallback runs `gh auth token` because the Copilot CLI only
+picks up a `gh` login by reading `oauth_token` from `~/.config/gh/hosts.yml` —
+which is absent whenever `gh` keeps the token in an OS keychain (the default on
+macOS). Asking `gh` itself works on every platform.
+
+</div>
+
+### GitHub Enterprise host
+
+Organizations that reach Copilot through a GitHub Enterprise (data-residency)
+instance need auth and API calls pointed at their own hostname rather than
+`github.com`. Set it through `omnigent setup` → *configure harnesses* →
+**Copilot** → **Set GitHub Enterprise host** (the same menu lets you change or
+clear it), or edit `~/.omnigent/config.yaml` directly:
+
+```yaml
+copilot:
+  github_host: acme.ghe.com
+```
+
+Provide a bare hostname; a pasted `https://` scheme or trailing slash is
+stripped automatically. When set, Omnigent forwards it to the bundled Copilot
+CLI as the `COPILOT_GH_HOST` environment variable and fetches your `gh` token
+for that host. With no host configured, Copilot uses its default `github.com`.
+
+## Grok Build
+
+Grok Build (xAI's `grok` CLI) ships as a builtin harness with the id `grok`
+(alias `grok-build`). Under the hood it drives `grok agent stdio` over the
+[Agent Client Protocol](https://agentclientprotocol.com) — Omnigent renders its
+streaming output, reasoning, and tool cards and routes its permission requests
+through your [contextual policies](/docs/policies/overview), just like the
+generic `acp` harness below. The difference is that it's built in: you select
+the `grok` harness id directly instead of registering a launch command.
+
+```
+omni run --harness grok
+```
+
+Like the generic ACP agents, Grok Build brings **its own auth and model** —
+Omnigent stores no credential and a `/model` pick is rejected up front (rather
+than silently dropped), so it always runs its account-default model. To pin one,
+configure an [`acp:` agent](#custom-acp-agents) whose command passes the `grok`
+CLI's own model flag. Install the CLI and log in through xAI first:
+
+```
+curl -fsSL https://x.ai/cli/install.sh | bash
+grok login --device-auth   # xAI OAuth (device-code capable)
+```
+
+Use the vendor login rather than an API key. The builtin `grok` row has no
+`env_passthrough` of its own, and `XAI_API_KEY` is not in the host-to-runner
+credential allowlist, so exporting it in your shell does **not** reach the
+agent. If you need the key route, pass it explicitly with
+`OMNIGENT_RUNNER_ENV_PASSTHROUGH=XAI_API_KEY`, or configure an
+[`acp:` agent](#custom-acp-agents) that declares the passthrough.
+
+## Devin
+
+Devin (Cognition) ships as a built-in **native TUI** harness with the id
+`devin-native`. `omni devin` boots the resident Devin CLI in a runner-owned pane
+and mirrors it into an Omnigent conversation, so you get
+[contextual policies](/docs/policies/overview), approval cards, resume, cost
+tracking, and Devin's sub-agents as child sessions on top of the native
+experience.
+
+```
+curl -fsSL https://cli.devin.ai/install.sh | bash
+devin auth login
+omni devin
+```
+
+Devin brings **its own auth** — Omnigent stores no credential. The CLI writes its
+own credential file and reads it back at launch, and `devin auth status` is a
+live probe, so `omni setup` reports the real sign-in state.
+
+Approvals surface two ways: Omnigent policies gate each request, tool call, and
+tool result, and Devin's own consent prompt is republished as a Chat approval
+card (answerable in the web UI or the embedded terminal).
+
+### Model and effort
+
+Devin encodes reasoning effort as a suffix on the model id. Omnigent keeps model
+and effort as separate axes and recombines them at launch. Pass a model family
+slug or alias from `devin models list`, and optionally an effort rung:
+
+```
+omni devin --model opus --effort xhigh
+omni devin --model gemini --effort max
+```
+
+`--effort` accepts `low`, `medium`, `high`, `xhigh`, or `max`; a family with no
+matching rung falls back to its default variant, so a mismatched pair costs
+effort, not the session. You can also switch models mid-session with `/model`.
+
+### Launch options
+
+- `--permission-mode` — one of `normal` (default), `accept-edits`, `smart`,
+  `dangerous`, or `bypass`.
+- `--sandbox` — enable Devin's OS-level process sandbox for its `exec` tool.
+- `-p`, `--prompt` — send an initial chat input when the TUI starts.
+- `--resume [CONVERSATION]` — resume a prior Omnigent conversation; with no value
+  it opens a picker scoped to `devin-native` sessions.
+
+Devin's own `--resume`/`-c`/`--config`/`--export` flags are reserved for
+Omnigent, which owns resume and hook wiring; use `omni devin --resume` instead.
+
+The `devin` and `native-devin` spellings both resolve to `devin-native`. The
+former built-in ACP row `devin-acp` was **removed in 0.14** and its id now
+aliases onto the native wrap, so existing sessions and scripts keep resolving. A
+user-configured [`acp:` agent](#custom-acp-agents) for Devin is unaffected.
+
+## Jcode
+
+Jcode ([jcode.sh](https://jcode.sh)) ships as a builtin harness with the id
+`jcode`. Like Grok Build, it drives its vendor CLI (`jcode acp`) over
+the [Agent Client Protocol](https://agentclientprotocol.com) over stdio —
+Omnigent renders its streaming output, reasoning, and tool cards and routes its
+permission requests through your [contextual policies](/docs/policies/overview).
+It's built in, so you select the `jcode` harness id directly instead of
+registering a launch command.
+
+```
+omni run --harness jcode
+```
+
+Jcode brings **its own auth and model** — Omnigent stores no credential. Jcode
+ships via a curl installer (no npm package) and owns its provider and model
+selection in `~/.jcode/config.toml`, so install the CLI and configure a provider
+there first:
+
+```
+curl -fsSL https://jcode.sh/install | bash
+```
+
+<div className="note">
+
+**Note:** Unlike most builtin ACP harnesses, Jcode's ACP server does **not**
+support session-scoped MCP — it ignores the `mcpServers` sent in `session/new`.
+Omnigent therefore does not advertise its builtin MCP tools (session, sub-agent,
+skill, and policy tools) to Jcode. Configure any MCP servers Jcode should use in
+its own `~/.jcode/mcp.json` instead.
+
+</div>
+
+## Hermes
+
+Hermes ships as a builtin harness with the id `hermes` and is offered directly
+in the web harness picker. Select it like any other builtin — in the picker, via
+`--harness hermes`, or in agent YAML:
+
+```
+executor:
+  harness: hermes
+  model: hermes-4-405b
+```
+
+Like the ACP agents, Hermes brings **its own auth** — Omnigent stores no
+credential and injects none. Hermes reads credentials from its own file-based
+store (`auth.json` / `.env` under `HERMES_HOME`), so log in and pick a model
+through its own CLI first:
+
+```
+hermes setup    # file-based auth under HERMES_HOME
+hermes model    # choose the model Hermes runs
+```
+
+Unlike the generic ACP agents, a `/model` pick **is** honored for Hermes: the
+model you declare in YAML or switch to mid-session threads through to the
+harness (via `HARNESS_HERMES_MODEL`). The sandbox and workspace a session
+selects are threaded through as well, so a sandbox chosen in the web session
+dialog actually confines the Hermes run.
+
+## Kimi Code
+
+Kimi Code (`kimi`, alias `kimi-code`) brings **its own auth** — Omnigent stores
+no credential. Kimi ships via a curl installer (no npm package), so install the
+CLI and sign in through it first:
+
+```
+curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash
+kimi login   # Moonshot OAuth, or paste a Moonshot API key
+```
+
+`kimi login` writes its credential to `~/.kimi-code/credentials/kimi-code.json`.
+`omni setup` detects that file and shows Kimi as **Signed in** once a login has
+completed; while the CLI is installed but no credential is present it shows
+**Not configured** with a "Sign in with `kimi login`" hint.
+
+Kimi has **no** `kimi logout` subcommand, so `omni setup` offers no sign-out
+row. To sign out, delete the credential file:
+
+```
+rm ~/.kimi-code/credentials/kimi-code.json
+```
+
+## OpenCode
+
+The native OpenCode harness (`opencode-native`, alias `opencode`) brings **its
+own provider auth** — Omnigent stores no OpenCode credential. OpenCode reaches a
+provider through any of three routes, and `omni setup` reads each one (without
+touching the secrets) to report which providers OpenCode can reach:
+
+1. **Stored login** — run `opencode auth login`; the credential lands in
+   `~/.local/share/opencode/auth.json`, keyed by provider id.
+2. **Provider API-key variables** — a common provider key such as
+   `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `XAI_API_KEY`, `MISTRAL_API_KEY`, or
+   `DEEPSEEK_API_KEY` set in the environment where `omnigent host` runs.
+3. **Amazon Bedrock** — see below.
+
+A host where none of these is present shows `opencode-native` as **needs-auth**
+and the web picker disables its row; `omni setup` offers to run OpenCode's
+native login.
+
+### Amazon Bedrock
+
+Bedrock is the exception to the API-key pattern: OpenCode loads it from the AWS
+credential chain and the AWS SDK authenticates at run time, so there is no
+`auth.json` entry or provider key to detect. Omnigent treats OpenCode as ready
+for Bedrock when **either** of the following holds:
+
+- Any of these AWS credential-chain variables is set (any non-empty value):
+  `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_PROFILE`, `AWS_REGION`,
+  `AWS_BEARER_TOKEN_BEDROCK`, `AWS_WEB_IDENTITY_TOKEN_FILE`,
+  `AWS_CONTAINER_CREDENTIALS_FULL_URI`, or
+  `AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`. `omni setup` lists this as
+  `env: Amazon Bedrock`.
+- Your OpenCode config (`~/.config/opencode/opencode.json` or `.jsonc`)
+  declares a `provider.amazon-bedrock` block — an empty `{}` is enough. `omni
+  setup` lists this as `config: amazon-bedrock`.
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "amazon-bedrock": { "options": { "profile": "work" } }
+  },
+  "model": "amazon-bedrock/anthropic.claude-sonnet-4-5-20250929-v1:0"
+}
+```
+
+Two things do **not** count on their own: an `enabled_providers` list naming
+`amazon-bedrock` (it only filters which providers OpenCode shows), and AWS
+variables OpenCode's Bedrock loader ignores — `AWS_SESSION_TOKEN`,
+`AWS_DEFAULT_REGION`, and `AWS_SHARED_CREDENTIALS_FILE`. A malformed config
+file credits nothing.
+
+<div className="note">
+
+**Note:** The readiness probe only checks that Bedrock is declared — it never
+contacts AWS. A host can read as ready with a profile or key that AWS later
+rejects; the failure surfaces when OpenCode makes its first model call.
+
+</div>
+
+## Antigravity
+
+The native Antigravity harness (`antigravity-native`) wraps Google's `agy` CLI.
+It requires **agy 1.1.13 or newer** and accepts either of two credentials:
+
+- **Gemini API key** — set a non-empty `GEMINI_API_KEY` in the environment.
+  Omnigent selects agy's direct Gemini provider (`modelProvider: "gemini"` in
+  the session's isolated agy settings) for you. When `GEMINI_API_KEY` is set it
+  takes precedence over any saved OAuth login; clear it to fall back to OAuth.
+- **Google OAuth login** — run `agy` once and complete the browser sign-in. The
+  `agy` CLI has no `agy login` / `agy auth status` subcommand: the token is
+  written on its first interactive run. Omnigent recognizes it at
+  `~/.gemini/oauth_creds.json` (macOS), `~/.gemini/antigravity-cli/antigravity-oauth-token`
+  (Linux), or the macOS Keychain (agy 1.1.7+).
+
+Install the CLI first, then supply one of those credentials:
+
+```
+curl -fsSL https://antigravity.google/cli/install.sh | bash
+```
+
+`omni setup` shows the harness as configured once the `agy` binary is present
+and either the API key or an OAuth login is detected.
+
+<div className="note">
+
+**Note:** The in-process `antigravity` SDK harness is a separate integration
+that resolves its own Gemini API key at runtime. The `GEMINI_API_KEY` behavior
+above applies to the native `agy`-wrapping `antigravity-native` harness.
+
+</div>
+
+## Codex
+
+The native Codex harness (`codex-native`, launched by `omni codex`) decides how
+a session authenticates before it starts the Codex CLI. In roughly this order,
+the first source that applies wins:
+
+1. A provider configured for the codex harness — the agent spec's
+   `executor.auth` when you launch a custom agent, otherwise the provider you
+   set up with `omni setup` (API key, gateway, or Databricks).
+2. A provider Omnigent auto-detects on the machine when nothing has been
+   configured yet.
+3. A **self-sufficient built-in Codex provider** selected by your own Codex
+   `config.toml` (`~/.codex/config.toml`). Codex authenticates these providers
+   itself, so no Omnigent provider and no Codex login is needed.
+4. The Codex CLI's own login (`codex login`).
+
+### Use your Codex `config.toml` provider
+
+If plain `codex` already runs on your machine because `~/.codex/config.toml`
+selects a built-in provider that brings its own credentials, `omni codex` routes
+the same way instead of failing the first turn with *"Codex is not signed in and
+no Omnigent provider routes the codex harness"*. Every built-in Codex provider
+except `openai` qualifies — Amazon Bedrock (`amazon-bedrock`, `amazon-bedrock-runtime`), Ollama
+(`ollama`), and LM Studio (`lmstudio`). An explicit `model_provider = "openai"` still defers
+to Codex's own login.
+
+```toml
+# ~/.codex/config.toml
+model = "openai.gpt-5.6-terra"
+model_provider = "amazon-bedrock"
+
+[model_providers.amazon-bedrock.aws]
+region = "us-east-1"
+```
+
+With this file and no Omnigent provider configured, `omni codex` launches with
+`model_provider="amazon-bedrock"` and Codex resolves the AWS credential chain
+itself. The session's provider summary names the built-in provider so you can
+see which route was taken. A provider configured through `omni setup` (tier 1
+above) still takes precedence over the ambient `config.toml` selection.
+
+Omnigent also leaves built-in provider tables such as
+`[model_providers.amazon-bedrock]` untouched when it writes the session's private
+`config.toml`; only custom `[model_providers.<name>]` tables receive Omnigent's
+retry settings (`request_max_retries` and friends), because Codex discards the
+whole config when a built-in table carries fields it doesn't recognize.
+
+### Select a Codex profile with `--profile`
+
+The ambient config is read through the `--profile` (or `-p`) you pass to
+Codex, whether as a CLI pass-through arg or via
+[`harness.codex-native.args`](#override-the-harness-binary-and-launch-args).
+Omnigent layers the selected profile over `~/.codex/config.toml` exactly the way
+Codex does at start:
+
+- A file profile at `~/.codex/<name>.config.toml` is layered when it exists —
+  with or without a base `config.toml`.
+- Otherwise the legacy inline `[profiles.<name>]` table in `config.toml` is
+  used (Codex versions before 0.134 keep profiles inline).
+
+So `omni codex --profile bedrock` routes through Bedrock when that profile sets
+`model_provider = "amazon-bedrock"`, even if the base config doesn't, and
+`--profile openai` over a Bedrock base keeps Codex's own login. A profile that
+exists nowhere leaves this tier alone (the launch falls through to Codex login),
+and a malformed selector — a missing value, a repeated `--profile`, or an
+invalid profile name — is reported by launch-arg validation when the session
+starts rather than during routing.
+
+## Pi
+
+The native Pi harness (`pi`, alias `pi-native`) runs the Pi CLI against the
+provider you configured with `omni setup`, writing a managed `models.json` and
+per-session Pi settings so Pi authenticates with the provider's key rather than
+its own credential env vars.
+
+### Curated `/model` shortlist
+
+A gateway provider family can declare a `models:` map of named tiers. When that
+map contains **more than one distinct model id**, Omnigent registers every tier
+with Pi and scopes Pi's `/model` picker to exactly that set, listed under the
+`omnigent` provider:
+
+```yaml
+# ~/.omnigent/config.yaml
+providers:
+  bifrost:
+    kind: gateway
+    default: true
+    openai:
+      base_url: http://bifrost.example.com/v1
+      api_key: <your-gateway-key>
+      wire_api: chat
+      models:
+        default: GLM-5.3-Flash
+        opus: GLM-5.3
+        pro: deepseek-v4-pro
+```
+
+With this config, `/model` in a Pi session shows `GLM-5.3-Flash`, `GLM-5.3`,
+and `deepseek-v4-pro` (each once — tiers that resolve to the same id collapse
+into a single row) and hides Pi's built-in provider catalogs. The scope is a
+picker preference written to the session's managed Pi settings as
+`enabledModels`, so you can still toggle the picker back to all models from
+inside Pi.
+
+Two details about how tier values are resolved:
+
+- **Aliases.** A tier value may name another tier — for example
+  `default: deepseek-pro` alongside `deepseek-pro: deepseek-v4-pro`. Omnigent
+  follows the alias to the concrete id, so the session launches with
+  `deepseek-v4-pro` and the alias never appears as a picker row of its own.
+- **Bracket suffixes.** A `[...]` suffix on a tier value (e.g. `GLM-5.3[16m]`)
+  is stripped before the id reaches the gateway or the picker, matching how the
+  launch model is handled.
+
+The shortlist only comes from a configured `models:` map. A family with no map,
+a map that resolves to a single id, or a `--model` override on a default-only
+setup does **not** scope the picker, and a catalog discovered live from the
+endpoint never does — in those cases any `enabledModels` preference you already
+keep in your own Pi settings is left as-is.
+
+### Keep other harnesses' credentials out of Pi
+
+Pi activates a built-in provider's whole catalog when it merely sees that
+provider's credential variable in its environment — whatever the value. A
+deployment that exports a placeholder token for another harness (for example
+`ANTHROPIC_AUTH_TOKEN` so `claude-code` can talk to a gateway) would therefore
+see Pi's picker flooded with built-in entries that bypass the managed provider.
+
+Pi's own auth rides the managed `models.json` key and needs none of those
+variables, so you can name the ones to strip from the Pi terminal's environment
+with `OMNIGENT_PI_ENV_UNSET`, a comma-separated list of variable names:
+
+```
+OMNIGENT_PI_ENV_UNSET=ANTHROPIC_AUTH_TOKEN,OPENAI_API_KEY
+```
+
+Names are trimmed and de-duplicated; when the variable is unset or blank, nothing
+is stripped. Set it in the environment where `omnigent host` runs — the variable
+carries **names only**, so it is forwarded through both the host daemon and the
+spawned runner without forwarding the named secrets themselves, and the Pi
+terminal removes those variables before launching `pi`. Other harnesses in the
+same deployment are unaffected.
+
+## Custom ACP agents
+
+Beyond the built-in harnesses, the generic `acp` harness drives *any* agent that
+speaks the [Agent Client Protocol](https://agentclientprotocol.com) — the open,
+editor-agnostic protocol used by Gemini CLI, Qwen Code, Goose, and in-house
+agents. You point Omnigent at a launch command and it
+speaks ACP against whatever that command starts.
+
+Each ACP agent brings **its own auth** — Omnigent stores no credential, so log
+into the agent through its own CLI first. Register agents with `omnigent setup`
+→ *configure harnesses* → **Custom ACP agent** → *Add*, providing a name, a
+launch command, and an optional model. (To pull agents in from an existing
+OpenClaw/acpx registry instead of typing each one, see
+[Import agents from OpenClaw](#import-agents-from-openclaw) below.) Some
+paste-ready commands:
+
+| Agent | Command |
+| --- | --- |
+| Gemini CLI | `gemini --experimental-acp` |
+| Qwen Code | `qwen --acp` |
+| Goose | `goose acp` |
+
+Each registered agent is stored in a top-level `acp:` block of
+`~/.omnigent/config.yaml` and gets a stable slug derived from its name. It then
+surfaces as its own harness id, `acp:<slug>`, in the web picker and in agent
+YAML:
+
+```yaml
+acp:
+  agents:
+    - { name: Gemini CLI, command: gemini --experimental-acp }
+    - { name: Goose, command: goose acp, model: gpt-5.3 }
+```
+
+```yaml
+executor:
+  harness: acp:gemini-cli
+```
+
+The agent runs its own agent loop, tools, and context window; Omnigent renders
+its streaming output, reasoning, and tool cards, routes its permission requests
+through your [contextual policies](/docs/policies/overview) as web elicitation
+cards, and honors interrupts. Omnigent also exposes its own builtin tools
+(session, sub-agent, skill, and policy tools) to the agent alongside the agent's
+native tools; set `OMNIGENT_ACP_MCP=0` to disable that bridge for a session.
+
+To disable that MCP relay permanently for a specific agent, set
+`omnigent_mcp: false` on its `acp:` entry. The agent keeps its own native tools;
+Omnigent simply stops lending its builtin tools to that agent in `session/new`
+(the field is still sent as an empty list, which ACP requires). This is required
+for agents whose ACP server rejects per-session MCP servers — such as the
+OpenClaw Gateway bridge described below. The value must be a boolean;
+`omnigent setup` reports an error if it isn't.
+
+```yaml
+acp:
+  agents:
+    - name: OpenClaw
+      command: openclaw acp --url <gateway-url> --token-file <token-file>
+      omnigent_mcp: false
+```
+
+<div className="note">
+
+**Note:** The generic ACP harness has no fixed binary — each agent owns its own
+install and login, so a missing binary is a hint, not a hard gate. A sandboxed
+generic ACP agent gets read access to its binary directory, the cwd, and write
+access to `/tmp`; an agent that must write its own config directory needs
+`sandbox: none` (the default) for now.
+
+</div>
+
+### Import agents from OpenClaw
+
+If you already keep an agent registry for OpenClaw or the `acpx` CLI, Omnigent
+can import those agents into its `acp:` block instead of re-adding each one by
+hand. Run `omnigent setup` → *configure harnesses* → **Import from OpenClaw**.
+The row shows how many agents were detected automatically. Omnigent looks in two
+default locations:
+
+| Source | Path |
+| --- | --- |
+| acpx | `~/.acpx/config.json` |
+| OpenClaw | `~/.openclaw/openclaw.json` |
+
+Both files are read as JSON5, and you can pick *Choose another file…* to point
+at a config elsewhere. Omnigent lists the agents it found, derives a stable slug
+from each name, and — after you confirm — appends them to the `acp:` block of
+`~/.omnigent/config.yaml`. From then on they behave exactly like manually added
+ACP agents.
+
+Import stores **only the launch command, not credentials** — each agent still
+authenticates through its own CLI. Re-running the import is safe: agents already
+present are skipped, and a new agent whose name collides with an existing slug
+gets a numbered suffix (e.g. `gemini-cli-2`) so nothing is overwritten. An agent
+whose binary isn't on your `PATH` is flagged as a hint, not blocked.
+
+To launch a single OpenClaw/acpx agent once **without** saving it to your config,
+use `--from-openclaw` on `omni run`:
+
+```
+omni run --from-openclaw "Gemini CLI" -p "review the last commit"
+```
+
+Match the agent by its display name (case-insensitive) or derived slug. This
+runs the agent through the `acp` harness for that one session; it can't be
+combined with an `AGENT` path or with `--harness`.
+
+This path drives the selected coding agent directly. It does **not** bring
+OpenClaw's Gateway session, routing, memory, or channels into the conversation —
+for that, register the Gateway bridge (below).
+
+### Drive the OpenClaw Gateway
+
+Beyond importing individual coding agents, the `openclaw acp` command exposes a
+live OpenClaw Gateway session as an ACP server over stdio, giving Omnigent
+access to OpenClaw's own routing, memory, and channels. Register it as an `acp:`
+agent, disabling Omnigent's MCP relay because the Gateway bridge rejects
+per-session MCP servers:
+
+```yaml
+acp:
+  agents:
+    - name: OpenClaw
+      command: openclaw acp --url <gateway-url> --token-file <token-file>
+      omnigent_mcp: false
+```
+
+Replace `<gateway-url>` and `<token-file>` with your running Gateway's
+connection details, then launch it:
+
+```
+omni run --harness acp:openclaw
+```
+
+<div className="note">
+
+**Caution:** Prefer `--token-file` so the Gateway token isn't stored in the
+launch command. Don't commit or share `~/.omnigent/config.yaml`, and use a token
+with the narrowest permissions OpenClaw supports.
+
+</div>
+
+Omnigent owns the outer conversation and transcript; OpenClaw owns the
+Gateway-backed session. OpenClaw's Control UI is a separate Gateway client, so
+messages entered there while Omnigent is offline are **not** imported into the
+Omnigent conversation — use Omnigent as the canonical conversation when you need
+its transcript and resume behavior. Bidirectional sync with the Control UI and
+per-session Omnigent MCP are not supported by this integration.
+
+## Swap harnesses
+
+Tools, policies, and other config stay the same across harnesses. Just change the
+`harness` value in your YAML, or override it at runtime:
+
+```
+omni run agent.yaml --harness codex
+```
+
+See [Models & Credentials](/docs/build/models) for how to set up API keys and choose models.
+
+## Override the harness binary and launch args
+
+By default each harness launches its vendor CLI from your `PATH` (e.g. `claude`,
+`codex`). You can point a harness at a specific executable, or prepend base
+launch args, from your Omnigent config — `~/.omnigent/config.yaml` (user) or
+`.omnigent/config.yaml` (project, takes precedence). View it with
+`omni config list`; set a value with `omni config set <key>=<value>`.
+
+The top-level `harness:` config key is polymorphic. The legacy scalar form still
+works (and auto-migrates to the mapping form the next time the config is
+written):
+
+```yaml
+# Legacy scalar (deprecated, still honored):
+harness: claude-sdk
+
+# Mapping form — a default plus per-harness startup overrides:
+harness:
+  default: claude-sdk
+  codex-native:
+    command: /usr/local/bin/codex
+    args: [--config, approval_policy=on-request]
+  pi-native:
+    command: /opt/bin/pi
+```
+
+- `default` (optional) — the default harness id for `omni run`.
+- `command` (optional) — overrides the vendor CLI executable for that harness.
+- `args` (optional list) — base launch args; any CLI pass-through args are
+  appended *after* these.
+
+This top-level `harness:` config key selects the CLI default and per-binary
+launch overrides. It's separate from the `executor.harness` value inside an
+agent's own YAML, which pins the harness for that one agent.
+
+<div className="note">
+
+**Note:** A project's per-harness overrides are deep-merged onto your global
+ones — a `.omnigent/config.yaml` entry augments (rather than replaces) the
+matching `~/.omnigent/config.yaml` entry, with the project's fields winning.
+
+</div>
+
+### Binary-path precedence
+
+For a harness's `command`, the first non-empty source wins:
+
+1. The `OMNIGENT_<NAME>_PATH` environment variable.
+2. The config `harness.<id>.command`.
+3. The harness's built-in default executable.
+
+`args` follow the same idea: the config `args` are the base, and CLI pass-through
+args are appended after them.
+
+`<NAME>` is the harness's underlying *binary*, not its id: the `-native` suffix
+is stripped, so `pi` and `pi-native` share `OMNIGENT_PI_PATH`, and the Claude
+harnesses map to `OMNIGENT_CLAUDE_PATH` (so `claude-sdk` and `claude-native`
+share one var).
+
+<div className="note">
+
+**Deprecated:** The older `HARNESS_<NAME>_PATH` env vars (for `codex`, `pi`,
+`kimi`, `goose`, `qwen`, and `hermes`) are still read as a fallback but log a
+warning and will be removed in **v0.8.0** — use `OMNIGENT_<NAME>_PATH` instead.
+The `omni claude --command` flag is likewise deprecated (set
+`OMNIGENT_CLAUDE_PATH` or `harness.claude-native.command` instead) and will be
+removed in a future release. No other native command has a `--command` flag.
+
+</div>
+
+To add a runtime that Omnigent does not include, see
+[Community Harnesses](/docs/build/harnesses/community).

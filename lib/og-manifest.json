@@ -1,4 +1,19 @@
 {
+  "/blog/any-acp-agent-with-tools-and-governance": {
+    "title": "Plug any ACP agent into Omnigent with your tools and governance built in",
+    "description": "Point Omnigent at any agent that speaks the Agent Client Protocol and run it with your session tools, sub-agents, skills, and policies already wired in.",
+    "eyebrow": "Blog"
+  },
+  "/blog/declarative-agent-configuration": {
+    "title": "Moving agent orchestration from code to configuration",
+    "description": "Define the orchestration setup you want in YAML, and let Omnigent handle the sessions, messaging, isolation, and policy enforcement that make it run.",
+    "eyebrow": "Blog"
+  },
+  "/blog/stop-surprise-llm-bills": {
+    "title": "Stop Surprise LLM Bills With Production-Ready Cost Controls",
+    "description": "How Omnigent's shipped cost control features help teams maintain LLM budget predictability through smart routing, progressive budgets, custom pricing, and comprehensive visibility.",
+    "eyebrow": "Blog"
+  },
   "/blog/first-class-projects-with-defaults": {
     "title": "Organize your sessions into projects, with optional defaults that pre-fill every new chat",
     "description": "Projects keep related sessions together instead of scattered across a flat list. Each one can optionally carry default session settings (host, working directory, agent, and a fresh git worktree) so new chats open pre-filled when the work runs the same way.",
@@ -9,6 +24,16 @@
     "description": "Use Claude Code, Codex, Pi, and other coding agents together through one shared orchestration, collaboration, and policy layer.",
     "eyebrow": "Blog"
   },
+  "/blog/nimble-web-research-extract-builtins": {
+    "title": "Give your agents built-in structured web research and extraction",
+    "description": "Enable nimble_research and nimble_extract by name in your agent spec: your agents can run cited web research and pull structured data off live pages, no glue code required.",
+    "eyebrow": "Blog"
+  },
+  "/blog/omnigent-policies": {
+    "title": "Allow, ask, deny: contextual policies in Omnigent",
+    "description": "An introduction to Omnigent policies: contextual ALLOW/ASK/DENY guardrails for AI agents, with built-in, custom Python, and CEL examples.",
+    "eyebrow": "Blog"
+  },
   "/blog/queue-and-steer-messages-while-agents-work": {
     "title": "Line up your next moves while an agent works — steer or reorder them mid-run",
     "description": "Type follow-ups while a turn is running: they queue in a strip above the composer and send in order when the agent goes idle, or you can steer, edit, reorder, and delete them.",
@@ -16,8 +41,23 @@
   },
   "/docs/build/harnesses": {
     "title": "Harnesses",
-    "description": "The harness is the runtime that executes your agent loop. Swap one line of YAML to switch between Claude, Codex, Cursor, and more — or ship your own as a community plugin.",
+    "description": "Understand the runtime layer that executes your agent loop and how to launch or select a harness.",
     "eyebrow": "Build"
+  },
+  "/docs/build/harnesses/supported": {
+    "title": "Supported Harnesses",
+    "description": "See every harness available in Omnigent, including its ids, aliases, execution modes, and support status.",
+    "eyebrow": "Harnesses"
+  },
+  "/docs/build/harnesses/configuration": {
+    "title": "Configuration",
+    "description": "Configure built-in and custom ACP harnesses, authentication, runtime selection, and launch overrides.",
+    "eyebrow": "Harnesses"
+  },
+  "/docs/build/harnesses/community": {
+    "title": "Community Harnesses",
+    "description": "Package and register a new Omnigent harness as a community plugin.",
+    "eyebrow": "Harnesses"
   },
   "/docs/build/models": {
     "title": "Models & Credentials",
@@ -59,6 +99,11 @@
     "description": "Move the Omnigent runner from your laptop to a remote container so your agent keeps working in an isolated cloud environment.",
     "eyebrow": "Deploy"
   },
+  "/docs/deploy/community-sandbox-providers": {
+    "title": "Community Sandbox Providers",
+    "description": "Implement, package, and test a third-party sandbox provider for Omnigent using the launcher API and Python entry-point registry.",
+    "eyebrow": "Deploy"
+  },
   "/docs/deploy/database": {
     "title": "Database",
     "description": "The Omnigent server persists session history, accounts, and artifacts. Choose between Postgres and SQLite, with the same schema and migrations.",
@@ -81,7 +126,7 @@
   },
   "/docs/interact/mobile": {
     "title": "Mobile",
-    "description": "Use Omnigent on your phone: the native iOS app from the App Store, or the mobile web UI in any phone browser. Start a session on your laptop, continue it on your phone.",
+    "description": "Use Omnigent on your phone: native apps for iOS and Android, or the mobile web UI in any phone browser. Start a session on your laptop, continue it on your phone.",
     "eyebrow": "Interact"
   },
   "/docs/interact/slack": {
@@ -114,15 +159,40 @@
     "description": "When built-in policies aren't enough, write your own in Python, register them on the server, and use them like builtins.",
     "eyebrow": "Policies"
   },
-  "/docs/policies/os-sandbox": {
-    "title": "Omnibox (OS Sandbox)",
+  "/docs/reference/configuration/os-sandbox": {
+    "title": "OS Sandbox Configuration",
     "description": "Omnibox is Omnigent's secure OS sandbox: restrict filesystem and network access and hide credentials for unattended, locked-down agents.",
-    "eyebrow": "Policies"
+    "eyebrow": "Reference"
   },
   "/docs/policies/overview": {
     "title": "Contextual Policies",
     "description": "Policies control what your Omnigent can do, intercepting every action to allow, ask for approval, or deny it in real time.",
     "eyebrow": "Policies"
+  },
+  "/docs/reference/configuration/kubernetes": {
+    "title": "Kubernetes Sandbox Configuration",
+    "description": "Configure storage and Secret mounts for Kubernetes managed sandbox runner Pods.",
+    "eyebrow": "Reference"
+  },
+  "/docs/reference/configuration": {
+    "title": "Configuration Reference",
+    "description": "Reference for Omnigent user, project, and server configuration.",
+    "eyebrow": "Reference"
+  },
+  "/docs/reference/configuration/cloud-sandbox": {
+    "title": "Cloud Sandbox Configuration",
+    "description": "Reference for configuring managed cloud sandbox providers, lifecycle settings, credentials, and host configuration.",
+    "eyebrow": "Reference"
+  },
+  "/docs/reference/configuration/routing": {
+    "title": "Smart Routing Configuration",
+    "description": "Reference for enabling built-in or external smart routing and configuring the external routing service.",
+    "eyebrow": "Reference"
+  },
+  "/docs/reference/routing-api": {
+    "title": "External Routing API",
+    "description": "Request and response contract for services that provide Smart Routing decisions to an Omnigent server.",
+    "eyebrow": "Reference"
   },
   "/docs/use/builtin-agents/debby": {
     "title": "Debby",

@@ -1,8 +1,8 @@
 import { pageMeta } from "@/lib/og";
 
 export const metadata = pageMeta(
-  "Bring your OpenClaw coding agents into Omnigent and run them under one roof",
-  "Import the coding agents you already registered in OpenClaw or acpx into Omnigent's harness picker, or launch one for a single run without saving it. Each agent keeps its own login; Omnigent stores only the launch command.",
+  "Import your OpenClaw coding agents into Omnigent",
+  "Reuse the ACP agents registered in OpenClaw or acpx. Import their launch commands into Omnigent, or try one for a single run.",
   {
     eyebrow: "Blog",
     path: "/blog/import-openclaw-agents",
@@ -10,9 +10,8 @@ export const metadata = pageMeta(
 );
 
 export const meta = {
-  title:
-    "Bring your OpenClaw coding agents into Omnigent and run them under one roof",
-  date: "2026-08-03",
+  title: "Import your OpenClaw coding agents into Omnigent",
+  date: "2026-10-15",
   category: "Multi-harness",
   author: "omnigent",
   heroArt: "/images/blog/import-openclaw-agents.png",
@@ -20,38 +19,50 @@ export const meta = {
 
 <BlogPostHeader slug="import-openclaw-agents" />
 
-If you already keep a set of coding agents registered in OpenClaw or acpx, you
-can now pull them straight into Omnigent and run them next to every other agent
-you drive here, without redoing setup by hand.
+If you have ACP coding agents registered in OpenClaw or acpx, import their
+launch commands into Omnigent instead of adding each one by hand. Each agent
+continues to use its own CLI login.
 
-Before this, an agent that lived in your OpenClaw or acpx registry stayed there.
-To use it in Omnigent you had to look up its launch command and add it yourself.
-Now Omnigent reads that registry for you and turns each entry into a coding
-agent you can pick from Omnigent's harness list, so one orchestration and policy
-layer sits over all of them. Each imported agent keeps its own authentication,
-and Omnigent stores only the launch command, never the agent's credentials.
-
-{/* DEMO REQUIRED: 15–30s recording or light/dark screenshot pair, realistic data. No sanitized mockups. Suggested: run `omni setup`, open Configure harnesses, select "Import from OpenClaw", pick a detected registry, and confirm the imported agents appearing in the harness picker */}
-
-To import, run `omni setup`, open **Configure harnesses**, and choose **Import
-from OpenClaw**. Omnigent auto-detects the registry at `~/.acpx/config.json` or
-`~/.openclaw/openclaw.json` (or you can point it at another path), then lists the
-agents it found so you can confirm the import. Each one shows up as `acp:<slug>`
-in the harness picker.
+Run `omni setup` and choose **Import from OpenClaw** under **Configure harnesses**:
 
 ```bash
 omni setup
 ```
 
-If you just want to try one agent for a single run without saving it to your
-config, address it by its registry name:
+Select the registry at `~/.acpx/config.json` or `~/.openclaw/openclaw.json`, or
+choose another file. Review the commands and confirm the import. The agents are
+saved in Omnigent's config and become available as `acp:<slug>` harnesses, such
+as `acp:gemini-cli`.
+
+<figure>
+  <picture>
+    <source
+      media="(prefers-color-scheme: dark)"
+      srcSet="/images/blog/import-openclaw-dark.png"
+    />
+    <img
+      src="/images/blog/import-openclaw-light.png"
+      alt="Omnigent setup lists Gemini CLI and Qwen Code from an acpx registry, then confirms that both agents were imported."
+      width={2178}
+      height={978}
+      style={{ width: "100%", borderRadius: "8px" }}
+    />
+  </picture>
+  <figcaption>
+    Importing Gemini CLI and Qwen Code from an example acpx registry.
+  </figcaption>
+</figure>
+
+To try one agent without saving it to your config, use its registry name:
 
 ```bash
 omni run --from-openclaw "Gemini CLI"
 ```
 
-See the [Harnesses guide](/docs/build/harnesses) for how coding agents and their
-harness ids work in Omnigent.
+See the [import guide](/docs/build/harnesses/configuration#import-agents-from-openclaw)
+for details. For OpenClaw's routing, memory, and channels,
+[connect the OpenClaw Gateway](/docs/build/harnesses/configuration#drive-the-openclaw-gateway)
+separately.
 
 ---
 

@@ -1,5 +1,6 @@
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
+import rehypePrettyCode from "rehype-pretty-code";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -8,6 +9,24 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx"],
   async redirects() {
     return [
+      // Section roots have no page of their own. Redirect here rather than with
+      // redirect() in a page: a prerendered redirect() page answers 307 with
+      // no Location header, which Search Console reports as a redirect error.
+      {
+        source: "/docs",
+        destination: "/quickstart/install",
+        permanent: false,
+      },
+      {
+        source: "/quickstart",
+        destination: "/quickstart/install",
+        permanent: false,
+      },
+      {
+        source: "/docs/policies/os-sandbox",
+        destination: "/docs/reference/configuration/os-sandbox",
+        permanent: true,
+      },
       {
         source: "/docs/deploy/cloud-sandbox",
         destination: "/docs/deploy/cloud-sandbox-host",
@@ -26,7 +45,103 @@ const nextConfig = {
       {
         source: "/download/mac",
         destination:
-          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.6.0-arm64.dmg",
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.2-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.17.2",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.2-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.17.1",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.1-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.17.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.0-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.14.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.14.0-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.13.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.13.0-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.12.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.12.0-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.10.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.10.0-arm64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.2-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.17.2",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.2-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.17.1",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.1-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.17.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.17.0-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.14.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.14.0-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.13.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.13.0-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.12.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.12.0-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac-x64/v0.10.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.10.0-x64.dmg",
+        permanent: false,
+      },
+      {
+        source: "/download/mac/v0.9.0",
+        destination:
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/mac/Omnigent-0.9.0-arm64.dmg",
         permanent: false,
       },
       {
@@ -50,19 +165,19 @@ const nextConfig = {
       {
         source: "/download/windows",
         destination:
-          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/win/Omnigent%20Setup%200.6.0.exe",
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/win/Omnigent%20Setup%200.17.2.exe",
         permanent: false,
       },
       {
         source: "/download/linux-deb",
         destination:
-          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/linux/omnigent-desktop-electron_0.6.0_amd64.deb",
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/linux/omnigent-desktop-electron_0.17.2_amd64.deb",
         permanent: false,
       },
       {
         source: "/download/linux-appimage",
         destination:
-          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/linux/Omnigent-0.6.0.AppImage",
+          "https://diksk5m140cfbma7.public.blob.vercel-storage.com/linux/Omnigent-0.17.2.AppImage",
         permanent: false,
       },
       // Desktop auto-update feed. The manifests (latest-mac.yml /
@@ -119,7 +234,7 @@ const nextConfig = {
 const withMDX = createMDX({
   options: {
     remarkPlugins: [remarkGfm],
-    rehypePlugins: [],
+    rehypePlugins: [[rehypePrettyCode, { theme: "github-dark" }]],
   },
 });
 
