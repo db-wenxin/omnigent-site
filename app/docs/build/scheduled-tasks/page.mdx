@@ -76,6 +76,57 @@ than the minimum interval. **A task must fire at least twice and no more often
 than once per hour** — the minimum gap between any two consecutive fires is 60
 minutes.
 
+### Rule limits
+
+Validation also enforces hard limits on the shape of a rule, so a single
+schedule cannot tie up the server. A rule that breaks any of these is rejected
+with the same HTTP 400:
+
+- **One rule, one line.** Pass a single `RRULE` (an optional `RRULE:` prefix is
+  accepted; matching is case-insensitive). Multi-line input or multiple rules
+  are rejected, as is a rule that repeats a field or leaves one empty
+  (`FREQ=DAILY;FREQ=WEEKLY`, `BYHOUR=`).
+- **Length.** The parser accepts at most 4096 characters; persisted rules are
+  stored in a 512-character column, so the parser ceiling does not raise what
+  you can save.
+- **`FREQ`** must be one of `SECONDLY`, `MINUTELY`, `HOURLY`, `DAILY`,
+  `WEEKLY`, `MONTHLY`, or `YEARLY`.
+- **`INTERVAL`** must be between 1 and 366 periods. For `MINUTELY` and
+  `SECONDLY` the equivalent cap is 366 hours (`INTERVAL` up to 21960 minutes or
+  1317600 seconds). Hourly-equivalent rules such as `FREQ=MINUTELY;INTERVAL=60`
+  and `FREQ=SECONDLY;INTERVAL=3600` remain valid, including when loaded from
+  storage.
+- **`COUNT`**, when set, must be a positive 32-bit integer (1 to 2147483647).
+- **`BY*` lists** (`BYMONTH`, `BYWEEKNO`, `BYYEARDAY`, `BYMONTHDAY`, `BYDAY`,
+  `BYHOUR`, `BYMINUTE`, `BYSECOND`, `BYSETPOS`, `BYEASTER`) are deduplicated
+  before parsing and may hold at most **24 distinct values** each. Duplicates
+  written differently (`+1MO`, `01MO`, `1MO`) collapse to one value.
+- **Time combinations.** The product of the `BYHOUR`, `BYMINUTE`, and
+  `BYSECOND` list lengths may be at most 24 per day — `BYHOUR=0,1,2,3,4` with
+  `BYMINUTE=0,1,2,3,4` (25 combinations) is rejected.
+
+### Search horizon and work budget
+
+Both validation and the next-fire lookup search at most **eight years** ahead
+of the anchor date, spend at most **100,000 steps** (counting calendar
+candidates, `BYSETPOS` selections, and inner time-filter searches), and stop
+after a **250 ms** deadline. Exhausting the step budget or the deadline is a
+validation error — the 400 response names the `work limit` or `time limit`
+that was hit. Validation runs off the HTTP event loop, so other requests stay
+responsive while a rule is checked.
+
+A rule with no occurrence inside the horizon is never armed:
+`FREQ=YEARLY;INTERVAL=10` validates nothing in the eight-year window and has no
+next run. Rules whose filters yield no candidates (for example a
+`BYSETPOS` position that never exists) stop at the horizon rather than
+searching forever.
+
+The same limits apply when the scheduler re-arms a task after a firing. If
+computing the next occurrence exceeds the budget, the scheduler logs the
+reason (`scheduler: task <id> stopped: …`) and clears the task's next-run time
+instead of leaving an expired timestamp; the task stays in place but does not
+fire again until you update its `rrule`.
+
 ## Pausing, updating, and deleting
 
 `sys_scheduled_task_update` changes only the fields you pass; the rest are left
