@@ -482,6 +482,99 @@ reads the on-disk file directly (no upload). This button shows only for native
 coding-agent sessions, since those harnesses run in the workspace and resolve
 the referenced file themselves.
 
+## Screen recordings
+
+When an agent saves a video in the session workspace and links it in its reply
+with ordinary Markdown link syntax, for example
+`[Screen recording](recordings/verification.webm)`, the web UI renders an
+inline player instead of a bare link. This is useful for verification
+recordings that show the agent driving an app.
+
+- **Chat** — a linked workspace recording shows a compact 16:10 player (up to
+  320 pixels wide). Click the recording name in the player header to open it
+  in the file viewer.
+- **Files** — video files opened from **Files** or **Changes** (or through a
+  `?file=` deep link) open in the file viewer's larger player, not the editor.
+- **Remote links** — a direct `http(s)` link whose path ends in `.mp4`,
+  `.webm`, `.mov`, `.m4v`, or `.ogv` also gets a player, including URLs with
+  signed query strings.
+
+Nothing loads until you click **Play**: there's no autoplay, and no video bytes
+are fetched before then. Playback, seeking, volume, and fullscreen use the
+browser's native media controls. Fullscreen also works in the
+[desktop app](/docs/interact/desktop).
+
+A workspace recording is read in full before it starts playing, so large files
+take time and memory to load. The memory is released when the player closes.
+The browser's codecs decide what plays; a `.mov` file, for example, can hold a
+codec the browser can't decode. When a workspace read fails or the codec isn't
+supported, the player offers a download and **Retry**. A remote recording
+offers **Open video in new tab** instead, since its own server controls
+downloads. Workspace playback needs an online runner.
+
+Only Markdown links become players. Raw HTML `<video>` tags and image syntax
+(`![...](demo.webm)`) aren't treated as recordings. The player only plays
+existing files; it doesn't record video or work out timestamps on its own.
+
+### Clickable actions with WebVTT chapters
+
+To let viewers jump to each step of a recording, save an optional
+[WebVTT](https://www.w3.org/TR/webvtt/all/) chapter file next to the video.
+Name it by appending `.chapters.vtt` to the full video filename:
+
+```text
+recordings/verification.webm
+recordings/verification.webm.chapters.vtt
+```
+
+```text
+WEBVTT
+
+open
+00:00.000 --> 00:04.500
+Open the application
+
+submit
+00:04.500 --> 00:09.000
+Submit the form
+
+verify
+00:09.000 --> 00:15.000
+Confirmation appears
+```
+
+- Cue times are offsets from the start of the recording, with millisecond
+  precision, measured by the recorder's clock. Session wall-clock timestamps
+  aren't video offsets, so adjust the times if you trim or join footage.
+- Each cue's text is a plain-text action or assertion label. Cue identifiers
+  (`open`, `submit`, …) are optional.
+- Chapter ranges must not overlap and must be in increasing order. An action
+  is highlighted only while playback is inside its range; gaps highlight
+  nothing.
+- The UI accepts at most 200 cues, 64 KiB of WebVTT, and 500 characters per
+  displayed label.
+
+Chat cards never show the action list. Click the recording title to open it in
+the file viewer, where the actions appear beside the video, or below it in
+narrow panels and on mobile. Click an action, or focus it and press `Enter`, to
+seek there. Choosing an action before the video has loaded starts playback at
+that point. Seeking a loaded video keeps it paused or playing, as it was. The
+highlight follows playback and native seeking, and actions past the
+recording's known duration are disabled. Long lists scroll inside the panel.
+
+The recording title, download menu, and an actions toggle share the player's
+toolbar. The toggle hides or reopens the panel without resetting playback,
+focus, or the selected action, and hiding it gives the video the same size as a
+plain recording. Choose **Download annotations (.vtt)** from the download menu
+to save the original chapter file. This works whether the actions are shown or
+hidden.
+
+The chapter file is optional. If it's missing, empty, invalid, too large, or
+truncated, the recording plays as an ordinary video without the action panel.
+An open preview re-reads the chapter file when the agent finishes a turn.
+Remote video links never look for chapter files, so save both files in the
+workspace to use actions.
+
 ## GitHub
 
 Coding-agent sessions have a **GitHub** tab in the right workspace rail. It
