@@ -288,6 +288,16 @@ tools:
 The JSON Schema under `parameters` is optional. If you omit it, Omnigent
 auto-generates the schema from the function's type annotations and signature.
 
+<div className="note">
+
+**Note:** The `callable` must be importable from the Python environment
+Omnigent runs in, typically as an installed package. Omnigent doesn't add the
+current working directory or workspace to the import path, so a module that
+just sits in your project directory won't resolve. Install the package into the
+Omnigent environment instead.
+
+</div>
+
 ## Sub-agent tools
 
 Declare agents as tools so a supervisor agent can delegate work to them. You can define a
