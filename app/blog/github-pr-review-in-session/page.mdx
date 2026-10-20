@@ -1,0 +1,67 @@
+import { pageMeta } from "@/lib/og";
+
+export const metadata = pageMeta(
+  "Read your agent's pull or merge request in the session",
+  "Read GitHub and Azure DevOps pull requests or GitLab merge requests alongside your agent's conversation. Inspect descriptions, comments, CI results, and file diffs in Omnigent's read-only Pull Requests tab.",
+  {
+    eyebrow: "Blog",
+    path: "/blog/github-pr-review-in-session",
+  },
+);
+
+export const meta = {
+  title: "Read your agent's pull or merge request in the session",
+  date: "2026-10-20",
+  category: "Web UI",
+  author: "omnigent",
+  heroArt: "/images/blog/github-pr-review-in-session.png",
+};
+
+<BlogPostHeader slug="github-pr-review-in-session" />
+
+Your agent says it opened a PR and CI passed. To check that, you switch to
+GitHub, GitLab, or Azure DevOps, read the diff and checks, then return to the
+conversation.
+
+Omnigent's **Pull Requests** panel puts the request description, CI results,
+comments, and file diffs beside the conversation. You can compare the agent's
+explanation with the changes before asking it to continue.
+
+<video
+  src="/images/blog/github-pr-review-in-session-demo.mp4"
+  poster="/images/blog/github-pr-review-in-session.png"
+  controls
+  muted
+  playsInline
+  preload="metadata"
+  aria-label="Omnigent 0.18 UI demonstration: open Pull Requests, inspect Summary and CI checks, then view Changes and select files"
+  style={{ width: "100%", borderRadius: "8px", margin: "1rem 0" }}
+/>
+
+_Sample session using Omnigent 0.18 workspace components and a snapshot of [public GitHub PR #623](https://github.com/omnigent-ai/omnigent-site/pull/623), not a live connection. In this recording, Summary includes comments; the current UI has a separate Comments tab._
+
+Start with a coding-agent session whose workspace is a git checkout on a
+supported provider and whose files you can browse. The execution host needs
+provider access: GitHub uses the GitHub CLI (`gh`); GitLab uses `glab`; Azure
+DevOps uses Azure CLI sign-in (`az login`) or `AZURE_DEVOPS_EXT_PAT`. For GitHub
+in a managed sandbox, have the session owner [connect GitHub](https://omnigent.ai/docs/deploy/github-connect#how-it-works) in Omnigent.
+
+1. Open **Pull Requests** in the [workspace rail](https://omnigent.ai/docs/interact/web-ui#github), or click the PR indicator in the
+   composer's workspace bar when one is available.
+2. Read **Summary** for the request description and CI checks. Open **Comments**
+   for conversation comments.
+3. Switch to **Changes** and use the folder tree to jump between file diffs.
+
+If the session has [multiple associated requests](https://omnigent.ai/docs/interact/web-ui#tracked-pull-requests), use the request selector to
+choose one.
+
+PR information refreshes when an agent turn ends. While the panel is open and
+the app is in the foreground, it also polls for PR and CI updates rather than
+streaming them in real time. For branch-based lookup, polling normally stops once
+checks settle or the PR closes or merges; tracked PRs continue polling while the
+panel is focused.
+
+For request tracking and selection, see the [Web UI guide](https://omnigent.ai/docs/interact/web-ui#tracked-pull-requests).
+
+The panel shows whether the request is open, closed, or merged. It is read-only:
+it does not post comments, submit approvals, or merge requests.
