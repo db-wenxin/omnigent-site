@@ -3,7 +3,8 @@ import { productionSiteUrl } from "@/lib/site";
 
 export const metadata = {
   title: "Blog",
-  description: "Product updates and feature deep-dives from the Omnigent team.",
+  description:
+    "Product updates, tutorials, and deep dives from the Omnigent team, partners, and community.",
   alternates: { canonical: `${productionSiteUrl}/blog` },
 };
 

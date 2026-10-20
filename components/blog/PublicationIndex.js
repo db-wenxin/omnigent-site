@@ -19,7 +19,7 @@ export default function PublicationIndex({ notesSelected = false }) {
         <p>
           {notesSelected
             ? "Short posts spotlighting individual Omnigent features."
-            : "Product updates and feature deep-dives from the Omnigent team."}
+            : "Product updates, tutorials, and deep dives from the Omnigent team, partners, and community."}
         </p>
       </header>
       <nav className="publication-tabs" aria-label="Post format">

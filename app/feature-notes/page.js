@@ -3,7 +3,7 @@ import { productionSiteUrl } from "@/lib/site";
 
 export const metadata = {
   title: "Feature notes",
-  description: "Focused feature walkthroughs from the Omnigent team.",
+  description: "Short posts spotlighting individual Omnigent features.",
   alternates: { canonical: `${productionSiteUrl}/feature-notes` },
 };
 

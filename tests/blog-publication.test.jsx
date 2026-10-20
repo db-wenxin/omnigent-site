@@ -16,6 +16,7 @@ import {
 } from "../lib/blog-formats";
 import { blogPosting } from "../lib/structured-data";
 import { getAuthorProfile } from "../lib/authors";
+import { blogFeedXml } from "../lib/feed";
 
 const kinds = ["article", "feature-note"];
 const renderIndex = (kind = "") =>
@@ -75,7 +76,7 @@ test("production classes, artwork and three latest note previews without explana
   expect(html).toContain('class="blog-featured"');
   expect(html).toContain('class="blog-grid"');
   expect(html).toContain(
-    "Product updates and feature deep-dives from the Omnigent team.",
+    "Product updates, tutorials, and deep dives from the Omnigent team, partners, and community.",
   );
   const teaser = html.split('<section class="publication-preview"')[1];
   const notes = getBlogPosts()
@@ -177,7 +178,7 @@ test("separate destinations are canonical and obsolete filters/views do not chan
     "https://omnigent.ai/feature-notes",
   );
   expect(metadata.description).toBe(
-    "Product updates and feature deep-dives from the Omnigent team.",
+    "Product updates, tutorials, and deep dives from the Omnigent team, partners, and community.",
   );
 });
 
@@ -337,4 +338,18 @@ test("migration slugs and unknown defaults retain the classification policy", ()
     "github-pr-review-in-session",
   ])
     expect(getBlogFormat(slug).kind).toBe("feature-note");
+});
+
+test("blog and feed descriptions include team, partner and community contributors", () => {
+  const description =
+    "Product updates, tutorials, and deep dives from the Omnigent team, partners, and community.";
+  expect(metadata.description).toBe(description);
+  expect(renderIndex()).toContain(description);
+  expect(blogFeedXml(getBlogPosts())).toContain(
+    `<description>${description}</description>`,
+  );
+  expect(notesMetadata.description).toBe(
+    "Short posts spotlighting individual Omnigent features.",
+  );
+  expect(renderIndex("feature-note")).toContain(notesMetadata.description);
 });
