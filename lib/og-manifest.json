@@ -19,6 +19,11 @@
     "description": "Projects keep related sessions together instead of scattered across a flat list. Each one can optionally carry default session settings (host, working directory, agent, and a fresh git worktree) so new chats open pre-filled when the work runs the same way.",
     "eyebrow": "Blog"
   },
+  "/blog/github-pr-review-in-session": {
+    "title": "Read your agent's pull or merge request in the session",
+    "description": "Read GitHub and Azure DevOps pull requests or GitLab merge requests alongside your agent's conversation. Inspect descriptions, comments, CI results, and file diffs in Omnigent's read-only Pull Requests tab.",
+    "eyebrow": "Blog"
+  },
   "/blog/meta-harness-missing-layer": {
     "title": "Meta-Harness: the Missing Layer Above Claude Code, Codex, and Pi",
     "description": "Use Claude Code, Codex, Pi, and other coding agents together through one shared orchestration, collaboration, and policy layer.",
