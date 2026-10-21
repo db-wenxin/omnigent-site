@@ -29,7 +29,7 @@ sandbox:
 | Field         | Required | Description                                                                                             |
 | ------------- | -------- | ------------------------------------------------------------------------------------------------------- |
 | `provider`    | Yes      | Provider id: `modal`, `daytona`, `islo`, `blaxel`, `gensee`, `openshell`, `boxlite`, or `microsandbox`. |
-| `server_url`  | Yes      | Public Omnigent server URL that the remote runner connects back to.                                     |
+| `server_url`  | Yes      | Omnigent server URL reachable from the sandbox.                                                         |
 | `host_config` | No       | Omnigent configuration installed inside each sandbox. See [Host configuration](#host-configuration).    |
 | `git_clone`   | No       | Clone policy for fresh repository checkouts. See [Git clone options](#git-clone-options).               |
 
@@ -275,10 +275,26 @@ port allowlist rather than the entire host.
 ```yaml
 sandbox:
   provider: microsandbox
-  server_url: http://host.microsandbox.internal:8317
+  server_url: http://host.microsandbox.internal:6767
   microsandbox:
     host_ports: [8317]
 ```
+
+Use your server's port in `server_url`; `localhost` inside the VM refers to the
+VM itself. The example also allows a host-local service on port `8317`.
+
+Optional `sandbox.microsandbox` settings:
+
+- `image` selects a host image; the official Omnigent host image is the default.
+- `env` lists server environment variable names to copy into the VM, such as
+  `[OPENAI_API_KEY]`. Set the values on the server, not in this YAML.
+- `cpus` defaults to `2`; `memory_mib` defaults to `4096`.
+- `idle_timeout_s` defaults to `86400` (24 hours); `0` disables idle draining.
+  Draining releases compute and preserves the writable layer, except `/tmp`.
+  The next message resumes the VM.
+- `network` is `host` (default), `public-only`, or `all`. `public-only` allows
+  public internet access and requires a public `server_url`; `all` also permits
+  private networks. `host` adds the scoped host access described below.
 
 `host.microsandbox.internal` is the stable guest hostname for the machine
 running microsandbox. In `host` network mode:
